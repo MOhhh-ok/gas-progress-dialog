@@ -32,7 +32,7 @@
     }
 
     function onTime() {
-        google.script.run.withSuccessHandler(onSuccess).myProgressGetData();
+        google.script.run.withSuccessHandler(onSuccess).progressGetData();
         setTimeout(onTime, 1000);
     }
 
