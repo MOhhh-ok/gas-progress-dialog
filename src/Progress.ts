@@ -4,12 +4,23 @@
  * https://opensource.org/license/mit/
  */
 
+/****************************************************************
+ * Edit below. SpreadsheetApp, DocumentApp, SlidesApp, or FormApp;
+ */
+const APP = SpreadsheetApp;
+// const APP = DocumentApp;
+// const APP = SlidesApp;
+// const APP = FormApp;
+
+/**
+ * Edit above
+ ****************************************************************/
+
 
 /**
  * Show progress info dialog
  * example:
  *   const progress=new Progress({
- *     Ui: SpreadsheetApp.getUi(),
  *     total: 5,
  *   });
  * 
@@ -49,12 +60,12 @@ export class Progress {
     Ui: GoogleAppsScript.Base.Ui;
 
     // data structure 
-    data:ProgressData;
+    data: ProgressData;
 
     // init
     constructor(args: {
-        Ui: GoogleAppsScript.Base.Ui,
-        total?: number
+        total?: number,
+        fromHtml?: boolean,
     }) {
 
         // singleton
@@ -64,11 +75,17 @@ export class Progress {
         Progress.instance = this;
 
         // property
-        this.Prop = PropertiesService.getScriptProperties();
-        this.PropKey = 'ProgressData' + new Date();
+        this.Prop = PropertiesService.getUserProperties();
+        this.PropKey = 'ProgressData';
 
         // ui
-        this.Ui = args.Ui;
+        this.Ui = APP.getUi();
+
+        // from html
+        if (args.fromHtml) {
+            this.data = this.loadData();
+            return;
+        }
 
         // data
         this.data = {
@@ -82,7 +99,7 @@ export class Progress {
     }
 
     // load from property
-    loadData(): object {
+    loadData(): ProgressData {
         const dataStr = this.Prop.getProperty(this.PropKey) ?? '{}';
         this.data = JSON.parse(dataStr);
         return Object.assign({}, this.data);
@@ -141,8 +158,14 @@ export class Progress {
 
     // show dialog
     show(title: string = 'Now processing. Don\'t close this window...') {
+
+        // if trigger, not show dialog
+        if(!this.Ui){
+            return;
+        }
+
         this.Ui.showModalDialog(
-            HtmlService.createHtmlOutput('ProgressDlg.htm'),
+            HtmlService.createHtmlOutputFromFile('ProgressDlg'),
             title
         );
     }
@@ -150,10 +173,28 @@ export class Progress {
 
 
 /**
- * global function
+ * global function. call from html
  */
 export function progressGetData() {
-    return Progress.instance.loadData();
+    const progress = new Progress({ fromHtml: true });
+    return progress.loadData();
 }
 
+/**
+ * test
+ */
+function progressTest() {
+    const progress = new Progress({
+        total: 5,
+    });
 
+    progress.show('Now processing. Don\'t close this window...');
+
+    for (let i = 0; i < 5; i++) {
+        progress.incrementProgress();
+        progress.log('log ' + i);
+        Utilities.sleep(1000);
+    }
+
+    progress.fin();
+}

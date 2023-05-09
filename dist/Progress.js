@@ -6,6 +6,10 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.progressGetData = exports.Progress = void 0;
+/****************************************************************
+ * Edit below. SpreadsheetApp, DocumentApp, SlidesApp, or FormApp;
+ */
+const APP = SpreadsheetApp;
 /**
  * Progress class
  */
@@ -19,10 +23,15 @@ class Progress {
         }
         Progress.instance = this;
         // property
-        this.Prop = PropertiesService.getScriptProperties();
-        this.PropKey = 'ProgressData' + new Date();
+        this.Prop = PropertiesService.getUserProperties();
+        this.PropKey = 'ProgressData';
         // ui
-        this.Ui = args.Ui;
+        this.Ui = APP.getUi();
+        // from html
+        if (args.fromHtml) {
+            this.data = this.loadData();
+            return;
+        }
         // data
         this.data = {
             total: (_a = args.total) !== null && _a !== void 0 ? _a : 0,
@@ -83,14 +92,34 @@ class Progress {
     }
     // show dialog
     show(title = 'Now processing. Don\'t close this window...') {
-        this.Ui.showModalDialog(HtmlService.createHtmlOutput('ProgressDlg.htm'), title);
+        // if trigger, not show dialog
+        if (!this.Ui) {
+            return;
+        }
+        this.Ui.showModalDialog(HtmlService.createHtmlOutputFromFile('ProgressDlg'), title);
     }
 }
 exports.Progress = Progress;
 /**
- * global function
+ * global function. call from html
  */
 function progressGetData() {
-    return Progress.instance.loadData();
+    const progress = new Progress({ fromHtml: true });
+    return progress.loadData();
 }
 exports.progressGetData = progressGetData;
+/**
+ * test
+ */
+function progressTest() {
+    const progress = new Progress({
+        total: 5,
+    });
+    progress.show('Now processing. Don\'t close this window...');
+    for (let i = 0; i < 5; i++) {
+        progress.incrementProgress();
+        progress.log('log ' + i);
+        Utilities.sleep(1000);
+    }
+    progress.fin();
+}
