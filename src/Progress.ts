@@ -27,6 +27,7 @@ const APP = SpreadsheetApp;
  *   progress.show();
  * 
  *   for(let i=0;i<5;i++){
+ *     progress.incrementProgress();
  *     progress.log('log '+i);
  *     Utilities.sleep(1000);
  *   }
