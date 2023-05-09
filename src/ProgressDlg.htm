@@ -1,0 +1,43 @@
+<style>
+    #progress {
+        background-color: #ccf;
+        font-size: .8em;
+        padding: .5em;
+        text-align: center;
+        display: none;
+    }
+
+    #log {
+        padding: 1em;
+        width: 90vw;
+        height: 60vh;
+    }
+</style>
+
+<script>
+    function onSuccess(obj) {
+        const prBox = document.querySelector('#progress');
+        prBox.textContent = obj.now + '/' + obj.total;
+        if (obj.total) {
+            prBox.style.display = 'block';
+        }
+
+        const logBox = document.querySelector('#log');
+        logBox.value = obj.log;
+        logBox.scrollTop = logBox.scrollHeight;
+
+        if (obj.fin) {
+            google.script.host.close();
+        }
+    }
+
+    function onTime() {
+        google.script.run.withSuccessHandler(onSuccess).myProgressGetData();
+        setTimeout(onTime, 1000);
+    }
+
+    onTime();
+</script>
+
+<div id='progress'></div>
+<textarea disabled id='log'></textarea>
